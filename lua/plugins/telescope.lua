@@ -10,6 +10,7 @@ return {
                     "--no-heading",
                     "--with-filename",
                     "--line-number",
+                    "--multiline",
                     "--column",
                     "--smart-case",
                     "--glob",
@@ -24,6 +25,7 @@ return {
                 live_grep = {
                     additional_args = function(opts)
                         return {
+                            "--multiline",
                             "--glob",
                             "!*.csv", -- Exclude CSV files
                             "--glob",

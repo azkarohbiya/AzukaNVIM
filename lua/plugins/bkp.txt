@@ -57,14 +57,12 @@ return {
         " Generate a filename based on current date and time
         let l:datetime = strftime("%Y%m%d_%H%M%S")
         let l:filename = l:datetime . ".sql"
-        let l:outputname = l:datetime
 
         " Create the command text
         let l:command = "echo \"\n" . l:text . "\n\" > " . l:filename . " && mybeeline " . l:filename . " & \n"
 
         " Send the command to tmux pane
         call system('tmux send-keys -t ' . l:target_pane . ' ' . shellescape(l:command))
-        let @+ = 'get "/data/gd_mkt_rna/azkaram/flatfile/' . l:outputname. '.csv"'
         endfunction
 
         function! SendSelectionToTmuxBackground3()
