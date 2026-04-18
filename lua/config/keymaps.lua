@@ -16,7 +16,7 @@ keymap.set("n", "-", "<C-x>") -- decrement
 
 -- Splitting Windows
 keymap.set("n", "<leader>sv", "<C-w>v", opts) -- Vertical
-keymap.set("n", "<leader>sh", "<C-w>s", opts) -- Horizontal
+keymap.set("n", "<leader>sH", "<C-w>s", opts) -- Horizontal
 keymap.set("n", "<leader>se", "<C-w>=", opts) -- increment
 keymap.set("n", "<leader>sx", ":close<CR>", opts) -- increment
 
@@ -36,17 +36,11 @@ keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>") -- increment
 keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>") -- increment
 
 -- Diagnostic
-keymap.set("n", "<C-j>", function()
+keymap.set("n", "<leader>dn", function()
     vim.diagnostic.goto_next()
 end)
 
 vim.g.tmux_navigator_no_mappings = 1
-
--- Map CTRL + H, J, K, L for window navigation in Neovim using Lua
-keymap.set("n", "<C-h>", "<C-w>h", opts)
-keymap.set("n", "<C-j>", "<C-w>j", opts)
-keymap.set("n", "<C-k>", "<C-w>k", opts)
-keymap.set("n", "<C-l>", "<C-w>l", opts)
 
 -- Custom keybindings for tmux navigation
 vim.api.nvim_set_keymap("n", "<C-h>", ":TmuxNavigateLeft<CR>", opts)
