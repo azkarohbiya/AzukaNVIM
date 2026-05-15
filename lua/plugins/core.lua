@@ -2,18 +2,13 @@ return {
     {
         "LazyVim/LazyVim",
         opts = {
-            colorscheme = "catppuccin",
+            colorscheme = "tokyonight-night",
         },
     },
     {
-        "catppuccin/nvim", -- Ensure the colorscheme is installed
+        "catppuccin/nvim",
         name = "catppuccin",
-        config = function()
-            require("catppuccin").setup({
-                transparent_background = true, -- Catppuccin-specific transparency setting
-            })
-            vim.cmd.colorscheme("catppuccin") -- Apply the colorscheme
-        end,
+        lazy = true,
     },
     {
         "nvim-neo-tree/neo-tree.nvim",
