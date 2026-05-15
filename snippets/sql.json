@@ -1,11 +1,29 @@
 {
-  "spam": {
+  "q_roaming_summary": {
     "body": [
-      "spam",
-      "spam"
+      "select",
+      "msisdn,",
+      "sum(coalesce(totcharge_tax,0)) totcharge_tax",
+      "sum(coalesce(tottrx_success,0)) tottrx_success",
+      "from mkt_so.ws_roaming_summary_dd",
+      "where calldate between '2024-11-01' and last_day('2024-12-01') -- MTD current month",
+      "group by 1",
+      ";",
+      ""
     ],
-    "description": "Structure",
-    "prefix": "f_spam"
+    "prefix": "q_roaming_summary",
+    "description": "Structure Roaming summary"
+  },
+  "cb": {
+    "body": [
+      "select msisdn, los,",
+      "case when lower(brand) = 'kartuhalo' then coalesce(tot_bill_amount, 0) else coalesce(total_revenue, 0) end rev_all,",
+      "case when lower(brand) = 'kartuhalo' then 'postpaid' else 'prepaid' end brand",
+      "from dm.cb_pre_post_mm",
+      "where event_date = '2024-12-01'"
+    ],
+    "prefix": "q_cb",
+    "description": "Structure"
   },
   "q_user_id": {
     "body": [
@@ -13,8 +31,32 @@
       "from mkt_dc.dcvm_insider_msisdn_202508",
       ""
     ],
-    "description": "Structure User ID",
-    "prefix": "q_user_id"
+    "prefix": "q_user_id",
+    "description": "Structure User ID"
+  },
+  "nrclss": {
+    "body": [
+      "select msisdn,",
+      "sum(coalesce(tot_trx,0)) trx,",
+      "sum(coalesce(clm_revenue,0)) clm_revenue",
+      "from rna_arc.dd_nonrclss_dls_bkp",
+      "where event_date between '2025-07-01' and '2025-07-31'",
+      "and coalesce(clm_revenue,0) > 1",
+      "group by 1",
+      ""
+    ],
+    "prefix": "q_nrclss",
+    "description": "Structure Non Reclass"
+  },
+  "q_demo": {
+    "body": [
+      "select msisdn, predicted_age_group, gender, marital_status, occupation, ses",
+      "from edm.cust_demo_final_result_mm",
+      "where event_date = '2025-01-01'",
+      ""
+    ],
+    "prefix": "q_demo",
+    "description": "Structure"
   },
   "q_nonrclss": {
     "body": [
@@ -40,92 +82,26 @@
       "and coalesce(clm_revenue,0) > 1",
       "group by 1"
     ],
-    "description": "Structure Non Reclass",
-    "prefix": "q_nonrclss"
+    "prefix": "q_nonrclss",
+    "description": "Structure Non Reclass"
   },
-  "catalog": {
+  "q_rank_cat_ih": {
     "body": [
-      "select *",
-      "from",
-      "(",
-      "select *, row_number() over(partition by sku order by time_stamp desc) rn",
-      "from smy.product_catalog_ifrs_c2c_dd",
-      "where event_date = '2025-08-09'",
-      ") a",
-      "where rn = 1",
+      "select notel",
+      "from mkt_ha.ih_bcp_rank_mm",
       ""
     ],
-    "description": "Structure Catalog",
-    "prefix": "q_catalog"
+    "prefix": "q_rank_cat_ih",
+    "description": "Structure"
   },
-  "q_demo": {
-    "prefix": "q_demo",
-    "description": "Structure",
+  "q_bcp_ih": {
     "body": [
-      "select msisdn, predicted_age_group, gender, marital_status, occupation, ses",
-      "from edm.cust_demo_final_result_mm",
-      "where event_date = '2025-01-01'",
-      ""
-    ]
-  },
-  "ir_reff": {
-    "body": [
-      "select group_pack_1, group_pack_2, `grouping`",
-      "from",
-      "(",
-      "select group_pack_1, group_pack_2, `grouping`, row_number() over(partition by `grouping` order by kadal desc) rn",
-      "from",
-      "(",
-      "select group_pack_1, group_pack_2, `grouping`, count(*) kadal",
-      "from mkt_post.ir_prod_ref",
-      "group by 1,2,3",
-      ") a",
-      ") a",
-      "where rn = 1"
-    ],
-    "description": "Structure",
-    "prefix": "q_ir_reff"
-  },
-  "q_svoc": {
-    "body": [
-      "select persona_id, paired_number",
-      "from mkt_bb.svoc_baseline_uh_cleaned_hive",
-      "group by 1,2",
+      "select notel",
+      "from mkt_ha.ih_bcp_rank_mm",
       ""
     ],
-    "description": "Structure",
-    "prefix": "q_svoc"
-  },
-  "q_rank_cat_mob": {
-    "body": [
-      "select msisdn",
-      "from mig.bcp_top_category_mm",
-      ""
-    ],
-    "description": "Structure",
-    "prefix": "q_rank_cat_mob"
-  },
-  "q_blacklist": {
-    "body": [
-      "select msisdn",
-      "from",
-      "(",
-      "select msisdn",
-      "from base.crm_blacklist",
-      "where event_date = '2025-10-21'",
-      "and lower(reason) in ('blacklist','blacklist_byu','blacklist_global_api','blacklist_tsel_b0','clsscjan','complainhandling','complainthandling','global','vvip','unblacklist')",
-      "group by 1",
-      "union all",
-      "select served_mobile_number msisdn from mkt_rna.campaign_vip_vvip union all",
-      "select served_mobile_number msisdn from mkt_rna.campaign_vip_vvip_cmp union all",
-      "select msisdn from dm.cb_pre_post_mm where event_date = '2025-09-01' and lower(trim(tsel_employee_flag)) = 'y' union all",
-      "select msisdn from rna.subs_hvc_ft where lower(amount) in ('vip','vvip')",
-      ") a",
-      "group by 1",
-      ""
-    ],
-    "description": "Structure",
-    "prefix": "q_blacklist"
+    "prefix": "q_bcp_ih",
+    "description": "Structure"
   },
   "template": {
     "body": [
@@ -160,92 +136,71 @@
       ";",
       ""
     ],
-    "description": "Structure",
-    "prefix": "q_template"
+    "prefix": "q_template",
+    "description": "Structure"
   },
-  "nrclss": {
-    "body": [
-      "select msisdn,",
-      "sum(coalesce(tot_trx,0)) trx,",
-      "sum(coalesce(clm_revenue,0)) clm_revenue",
-      "from rna_arc.dd_nonrclss_dls_bkp",
-      "where event_date between '2025-07-01' and '2025-07-31'",
-      "and coalesce(clm_revenue,0) > 1",
-      "group by 1",
-      ""
-    ],
-    "description": "Structure Non Reclass",
-    "prefix": "q_nrclss"
-  },
-  "q_bintang": {
-    "body": [
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      "bintang",
-      ""
-    ],
-    "description": "Structure",
-    "prefix": "q_bintang"
-  },
-  "q_bcp_ih": {
-    "body": [
-      "select notel",
-      "from mkt_ha.ih_bcp_rank_mm",
-      ""
-    ],
-    "description": "Structure",
-    "prefix": "q_bcp_ih"
-  },
-  "tsel": {
+  "channel": {
     "body": [
       "select",
-      "msisdn,",
-      "sum(case when trx_date between '2024-12-01' and last_day('2024-12-01') then 1 else 0 end) total_locup,",
-      "sum(case when trx_date between '2024-11-01' and last_day('2024-11-01') then 1 else 0 end) total_locup_m1,",
-      "count(distinct case when trx_date between '2024-12-01' and last_day('2024-12-01') then trx_date end) count_date_locup,",
-      "count(distinct case when trx_date between '2024-11-01' and last_day('2024-11-01') then trx_date end) count_date_locup_m1,",
-      "max(case when trx_date between '2024-12-01' and last_day('2024-12-01') and lower(trim(country)) in ('cambodia','philippines','thailand','vietnam') then 1 else 0 end) bin_remove",
-      "from mkt_so.ws_roaming_country_dd",
-      "where trx_date between '2024-11-01' and last_day('2024-12-01')",
-      "and lower(data_source) = 'locup'",
-      "group by 1"
-    ],
-    "description": "Structure",
-    "prefix": "q_locup"
-  },
-  "q_mytsel": {
-    "body": [
+      "actvtn_chnnl_id,",
+      "case",
+      "when actvtn_chnnl_id in ('a0','b3','i1','i6','ig') then '01. MyTelkomsel'",
+      "when lower (actvtn_chnnl_id) like 'f%' then '02. UMB'",
+      "when actvtn_chnnl_id in ('pe') then '03. SMS 5111'",
+      "when actvtn_chnnl_id in ('c2','c4') then '04. WABA'",
+      "when lower(actvtn_chnnl_id) rlike 'dgp|i4' then '05. DigiPos'",
+      "when lower(actvtn_chnnl_id) rlike 't|o0|l5|l9' then '06. Modern Channel'",
+      "when actvtn_chnnl_id = 'c4' then '07. VA - Whatsapp'",
+      "when actvtn_chnnl_id = 'x9' then '07. Surrounding - NBP'",
+      "when actvtn_chnnl_id = 'b0' then '08. Telkomsel.com'",
+      "when actvtn_chnnl_id = 'b0' then '08. Telkomsel.com'",
+      "when actvtn_chnnl_id = 'k4' then '09. DSC'",
+      "else '99.Others'",
+      "end channel_name,",
+      "cast(sum(rev)as decimal(38,0)) rev",
+      "from mkt_so.postpaid_digital_202501 a",
+      "inner join",
+      "(",
       "select msisdn",
-      "from mkt_dc.mytsel_cb_mm",
-      "where trx_date = '2025-08-01'",
-      "group by 1",
-      ""
-    ],
-    "description": "Structure MyTsel",
-    "prefix": "q_mytsel"
-  },
-  "q_roaming_summary": {
-    "body": [
-      "select",
-      "msisdn,",
-      "sum(coalesce(totcharge_tax,0)) totcharge_tax",
-      "sum(coalesce(tottrx_success,0)) tottrx_success",
-      "from mkt_so.ws_roaming_summary_dd",
-      "where calldate between '2024-11-01' and last_day('2024-12-01') -- MTD current month",
-      "group by 1",
+      "from mkt_so.cb_postpaid_profile_202501 where lower(status) ='active'",
+      ") b",
+      "on a.msisdn = b.msisdn",
+      "left join",
+      "(",
+      "select channel_id, channel_group",
+      "from mkt_bb.reff_channel_group",
+      "group by 1,2",
+      ") c",
+      "on a.actvtn_chnnl_id = c.channel_id",
+      "left join",
+      "(",
+      "select channel_id, channel_name",
+      "from dim.channel_ref_2d_digit_dim",
+      "group by 1,2",
+      ") d",
+      "on a.actvtn_chnnl_id = d.channel_id",
+      "left join",
+      "(",
+      "select *",
+      "from sls_chnl.channel_ifrs_mapping_reff",
+      ") e",
+      "on a.actvtn_chnnl_id = e.channel_id",
+      "group by 1,2,3,4",
       ";",
       ""
     ],
-    "description": "Structure Roaming summary",
-    "prefix": "q_roaming_summary"
+    "prefix": "q_channel",
+    "description": "Structure Channel"
+  },
+  "q_svoc": {
+    "body": [
+      "select persona_id, paired_number",
+      "from mkt_bb.svoc_baseline_uh_cleaned_hive",
+      "group by 1,2",
+      ""
+    ],
+    "prefix": "q_svoc",
+    "description": "Structure"
   },
   "bcp": {
     "body": [
@@ -262,8 +217,50 @@
       ";",
       ""
     ],
-    "description": "Structure",
-    "prefix": "q_bcp"
+    "prefix": "q_bcp",
+    "description": "Structure"
+  },
+  "catalog": {
+    "body": [
+      "select *",
+      "from",
+      "(",
+      "select *, row_number() over(partition by sku order by time_stamp desc) rn",
+      "from smy.product_catalog_ifrs_c2c_dd",
+      "where event_date = '2025-08-09'",
+      ") a",
+      "where rn = 1",
+      ""
+    ],
+    "prefix": "q_catalog",
+    "description": "Structure Catalog"
+  },
+  "base_persona_dig": {
+    "body": [
+      "select bid",
+      "from mkt_bb.desi_tnl_persona_digital_20260402",
+      "group by 1",
+      ""
+    ],
+    "prefix": "q_base_persona",
+    "description": "Structure"
+  },
+  "tsel": {
+    "body": [
+      "select",
+      "msisdn,",
+      "sum(case when trx_date between '2024-12-01' and last_day('2024-12-01') then 1 else 0 end) total_locup,",
+      "sum(case when trx_date between '2024-11-01' and last_day('2024-11-01') then 1 else 0 end) total_locup_m1,",
+      "count(distinct case when trx_date between '2024-12-01' and last_day('2024-12-01') then trx_date end) count_date_locup,",
+      "count(distinct case when trx_date between '2024-11-01' and last_day('2024-11-01') then trx_date end) count_date_locup_m1,",
+      "max(case when trx_date between '2024-12-01' and last_day('2024-12-01') and lower(trim(country)) in ('cambodia','philippines','thailand','vietnam') then 1 else 0 end) bin_remove",
+      "from mkt_so.ws_roaming_country_dd",
+      "where trx_date between '2024-11-01' and last_day('2024-12-01')",
+      "and lower(data_source) = 'locup'",
+      "group by 1"
+    ],
+    "prefix": "q_locup",
+    "description": "Structure"
   },
   "resident": {
     "body": [
@@ -282,19 +279,8 @@
       "where m1+m2+m3 = 3",
       "group by 1"
     ],
-    "description": "Structure",
-    "prefix": "q_resident"
-  },
-  "cb": {
-    "body": [
-      "select msisdn, los,",
-      "case when lower(brand) = 'kartuhalo' then coalesce(tot_bill_amount, 0) else coalesce(total_revenue, 0) end rev_all,",
-      "case when lower(brand) = 'kartuhalo' then 'postpaid' else 'prepaid' end brand",
-      "from dm.cb_pre_post_mm",
-      "where event_date = '2024-12-01'"
-    ],
-    "description": "Structure",
-    "prefix": "q_cb"
+    "prefix": "q_resident",
+    "description": "Structure"
   },
   "bba": {
     "body": [
@@ -308,16 +294,93 @@
       "group by 1",
       ""
     ],
-    "description": "Structure",
-    "prefix": "q_bba"
+    "prefix": "q_bba",
+    "description": "Structure"
   },
-  "q_rank_cat_ih": {
+  "ir_reff": {
     "body": [
-      "select notel",
-      "from mkt_ha.ih_bcp_rank_mm",
+      "select group_pack_1, group_pack_2, `grouping`",
+      "from",
+      "(",
+      "select group_pack_1, group_pack_2, `grouping`, row_number() over(partition by `grouping` order by kadal desc) rn",
+      "from",
+      "(",
+      "select group_pack_1, group_pack_2, `grouping`, count(*) kadal",
+      "from mkt_post.ir_prod_ref",
+      "group by 1,2,3",
+      ") a",
+      ") a",
+      "where rn = 1"
+    ],
+    "prefix": "q_ir_reff",
+    "description": "Structure"
+  },
+  "q_bintang": {
+    "body": [
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
+      "bintang",
       ""
     ],
-    "description": "Structure",
-    "prefix": "q_rank_cat_ih"
+    "prefix": "q_bintang",
+    "description": "Structure"
+  },
+  "q_mytsel": {
+    "body": [
+      "select msisdn",
+      "from mkt_dc.mytsel_cb_mm",
+      "where trx_date = '2025-08-01'",
+      "group by 1",
+      ""
+    ],
+    "prefix": "q_mytsel",
+    "description": "Structure MyTsel"
+  },
+  "q_rank_cat_mob": {
+    "body": [
+      "select msisdn",
+      "from mig.bcp_top_category_mm",
+      ""
+    ],
+    "prefix": "q_rank_cat_mob",
+    "description": "Structure"
+  },
+  "q_blacklist": {
+    "body": [
+      "select msisdn",
+      "from",
+      "(",
+      "select msisdn",
+      "from base.crm_blacklist",
+      "where event_date = '2025-10-21'",
+      "and lower(reason) in ('blacklist','blacklist_byu','blacklist_global_api','blacklist_tsel_b0','clsscjan','complainhandling','complainthandling','global','vvip','unblacklist')",
+      "group by 1",
+      "union all",
+      "select served_mobile_number msisdn from mkt_rna.campaign_vip_vvip union all",
+      "select served_mobile_number msisdn from mkt_rna.campaign_vip_vvip_cmp union all",
+      "select msisdn from dm.cb_pre_post_mm where event_date = '2025-09-01' and lower(trim(tsel_employee_flag)) = 'y' union all",
+      "select msisdn from rna.subs_hvc_ft where lower(amount) in ('vip','vvip')",
+      ") a",
+      "group by 1",
+      ""
+    ],
+    "prefix": "q_blacklist",
+    "description": "Structure"
+  },
+  "spam": {
+    "body": [
+      "spam",
+      "spam"
+    ],
+    "prefix": "f_spam",
+    "description": "Structure"
   }
 }
